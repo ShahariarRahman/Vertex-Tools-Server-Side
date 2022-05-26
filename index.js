@@ -40,6 +40,11 @@ const run = async () => {
     try {
         await client.connect();
         const toolCollection = client.db("vertex-tools").collection("tools");
+        const orderCollection = client.db("vertex-tools").collection("orders");
+        const userCollection = client.db('vertex-tools').collection('users');
+        const reviewCollection = client.db("vertex-tools").collection("reviews");
+        const paymentCollection = client.db('vertex-tools').collection('payments');
+
 
 
     }
