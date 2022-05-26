@@ -155,6 +155,16 @@ const run = async () => {
             res.send({ result, token });
         })
 
+        app.get('/reviews', async (req, res) => {
+            const reviews = await reviewCollection.find().sort({ time: -1 }).toArray();
+            res.send(reviews);
+        });
+
+        app.post('/reviews', verifyJWT, async (req, res) => {
+            const review = req.body;
+            const result = await reviewCollection.insertOne(review);
+            res.send(result);
+        });
 
     }
 
