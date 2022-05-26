@@ -89,6 +89,51 @@ const run = async () => {
             res.send(order);
         });
 
+        app.post('/orders/:id', verifyJWT, async (req, res) => {
+            const id = req.params.id;
+            const order = req.body;
+
+            const query = { _id: ObjectId(id) };
+            const tool = await toolCollection.findOne(query);
+
+            const toolAvailableQuantity = tool.availableQuantity - order.quantity;
+
+            const updateDoc = {
+                $set: {
+                    availableQuantity: toolAvailableQuantity
+                }
+            };
+
+            const toolUpdate = await toolCollection.updateOne(query, updateDoc);
+
+            const result = await orderCollection.insertOne(order);
+            res.send(result);
+        });
+
+        app.patch('/orders/:id', verifyJWT, async (req, res) => {
+            const id = req.params.id;
+            const payment = req.body;
+            const filter = { _id: ObjectId(id) };
+            const updateDoc = {
+                $set: {
+                    paid: true,
+                    status: "Pending",
+                    transactionId: payment.transactionId
+                }
+            };
+            const result = await paymentCollection.insertOne(payment);
+            const updatedOrder = await orderCollection.updateOne(filter, updateDoc);
+            res.send(updateDoc);
+        });
+
+        app.delete('/orders', verifyJWT, async (req, res) => {
+            const id = req.query.id;
+            const query = { _id: ObjectId(id) };
+            const result = await orderCollection.deleteOne(query);
+            res.send(result);
+        });
+
+
 
     }
 
