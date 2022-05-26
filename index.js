@@ -72,6 +72,23 @@ const run = async () => {
             res.send(result);
         });
 
+        app.get('/orders', verifyJWT, async (req, res) => {
+            const orders = await orderCollection.find().sort({ time: -1 }).toArray();
+            res.send(orders);
+        });
+
+        app.get('/orders/:email', verifyJWT, async (req, res) => {
+            const email = req.params.email;
+            const orders = await orderCollection.find({ email }).sort({ time: -1 }).toArray();
+            res.send(orders);
+        });
+        app.get('/order/:id', verifyJWT, async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const order = await orderCollection.findOne(query);
+            res.send(order);
+        });
+
 
     }
 
