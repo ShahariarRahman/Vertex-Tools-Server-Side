@@ -47,6 +47,32 @@ const run = async () => {
 
 
 
+        app.get('/tools', async (req, res) => {
+            const tools = await toolCollection.find().sort({ time: -1 }).toArray();
+            res.send(tools);
+        });
+
+        app.get('/tools/:id', verifyJWT, async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const tool = await toolCollection.findOne(query);
+            res.send(tool);
+        });
+
+        app.post('/tools', verifyJWT, async (req, res) => {
+            const tool = req.body;
+            const result = await toolCollection.insertOne(tool);
+            res.send(result);
+        });
+
+        app.delete('/tools', verifyJWT, async (req, res) => {
+            const id = req.query.id;
+            const query = { _id: ObjectId(id) };
+            const result = await toolCollection.deleteOne(query);
+            res.send(result);
+        });
+
+
     }
 
     finally { }
