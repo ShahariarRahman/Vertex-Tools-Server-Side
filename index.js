@@ -10,8 +10,6 @@ const app = express();
 const port = process.env.PORT || 5000;
 
 
-// start
-
 app.use(cors());
 app.use(express.json());
 
@@ -45,6 +43,32 @@ const run = async () => {
         const reviewCollection = client.db("vertex-tools").collection("reviews");
         const paymentCollection = client.db('vertex-tools').collection('payments');
 
+        const verifyAdmin = async (req, res, next) => {
+            const requester = req.decoded.email;
+            const requesterAccount = await userCollection.findOne({ email: requester });
+            if (requesterAccount?.role === 'admin') {
+                next();
+            }
+            else {
+                res.status(403).send({ message: 'Forbidden' });
+            }
+        };
+
+
+        app.post("/create-payment-intent", verifyJWT, async (req, res) => {
+            const order = req.body;
+            const price = order.price;
+            const quantity = order.quantity;
+            const amount = price * quantity * 100;
+
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount,
+                currency: "usd",
+                payment_method_types: ["card"]
+            });
+
+            res.send({ clientSecret: paymentIntent.client_secret });
+        });
 
 
         app.get('/tools', async (req, res) => {
