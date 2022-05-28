@@ -111,6 +111,16 @@ const run = async () => {
             const order = await orderCollection.findOne(query);
             res.send(order);
         });
+        app.patch('/order/:id', verifyJWT, async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            const updateDoc = {
+                $set: { shipped: true }
+            };
+            const setAdmin = await orderCollection.updateOne(filter, updateDoc);
+            res.send(setAdmin);
+            console.log(id);
+        });
 
         app.post('/orders/:id', verifyJWT, async (req, res) => {
             const id = req.params.id;
@@ -140,7 +150,7 @@ const run = async () => {
             const updateDoc = {
                 $set: {
                     paid: true,
-                    status: "Pending",
+                    shipped: false,
                     transactionId: payment.transactionId
                 }
             };
@@ -156,8 +166,23 @@ const run = async () => {
             res.send(result);
         });
 
+        app.get('/admin/:email', verifyJWT, async (req, res) => {
+            const email = req.params.email;
+            const user = await userCollection.findOne({ email });
+            res.send(user);
+        });
+        app.patch('/admin/:email', verifyJWT, async (req, res) => {
+            const email = req.params.email;
+            const filter = { email };
+            const updateDoc = {
+                $set: { admin: true }
+            };
+            const setAdmin = await userCollection.updateOne(filter, updateDoc);
+            res.send(setAdmin);
+        });
+
         app.get('/user', verifyJWT, async (req, res) => {
-            const users = await userCollection.find().toArray();
+            const users = await userCollection.find().sort({ admin: 1 }).toArray();
             res.send(users);
         });
 
@@ -176,7 +201,19 @@ const run = async () => {
                 expiresIn: '1h'
             });
             res.send({ result, token });
-        })
+        });
+
+        app.patch('/user/:email', verifyJWT, async (req, res) => {
+            const email = req.params.email;
+            const info = req.body;
+
+            const filter = { email };
+            const updateDoc = {
+                $set: info
+            };
+            const updatedUser = await userCollection.updateOne(filter, updateDoc);
+            res.send(updatedUser);
+        });
 
         app.get('/reviews', async (req, res) => {
             const reviews = await reviewCollection.find().sort({ time: -1 }).toArray();
